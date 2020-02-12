@@ -143,31 +143,40 @@ namespace BlackJack
 
         static void ShowSettingsMenu()
         {
+            bool showSettingsInfo = true;
             ConsoleKeyInfo keyInfo;
 
             do
             {
-                Console.WriteLine("Settings");
-                Console.WriteLine("Press 'N' to change the number of decks used");
-                Console.WriteLine("Press 'T' to change the game theme");
-                Console.WriteLine("Press 'D' to reset defaults");
-                Console.WriteLine("Press 'Esc' to return to the main menu\n");
+                if (showSettingsInfo)
+                {
+                    Console.WriteLine("Settings");
+                    Console.WriteLine("Press 'N' to change the number of decks used");
+                    Console.WriteLine("Press 'T' to change the game theme");
+                    Console.WriteLine("Press 'D' to reset defaults");
+                    Console.WriteLine("Press 'Esc' to return to the main menu\n");
+
+                    showSettingsInfo = false;
+                }
 
                 keyInfo = Console.ReadKey(true);
 
                 if (keyInfo.Key == ConsoleKey.N)
                 {
-                    Settings.NumDecksSetting();                   
+                    Settings.NumDecksSetting();
+                    showSettingsInfo = true;
                 }
 
                 if (keyInfo.Key == ConsoleKey.T)
                 {
-                    Settings.ThemeSetting();                   
+                    Settings.ThemeSetting();
+                    showSettingsInfo = true;
                 }
 
                 if (keyInfo.Key == ConsoleKey.D)
                 {
                     Settings.ResetDefaults();
+                    showSettingsInfo = true;
                 }
 
             }

@@ -8,6 +8,14 @@ It is a simulation of the basic form of the game, allowing a player to play agai
 
 "Splitting", "Doubling down"and "Insurance" game mechanics will be added in the future.
 
+## License
+Please acknowledge the license of this software outlined in the "LICENSE.md" file located in the root of this repository.
+
+## Requirements
+To use this application, you just need to follow the steps outlined in the 'Using the application' section below.
+
+However, I have also included the Visual Studio solution file (.sln) in this repository which you can use to view (and modify) the code  and its structure more easily. To open this file, you will need to have Microsoft Visual Studio installed on your machine, which you can download [here](https://visualstudio.microsoft.com/downloads/).
+
 ## Using the application
 To use the application:
   1. Ensure the active branch of this repository is 'master'

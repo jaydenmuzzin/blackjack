@@ -1,0 +1,7 @@
+C:\Users\Jayden\Documents\WebDev Projects\BlackJack\BlackJack\bin\Debug\BlackJack.exe.config
+C:\Users\Jayden\Documents\WebDev Projects\BlackJack\BlackJack\bin\Debug\BlackJack.exe
+C:\Users\Jayden\Documents\WebDev Projects\BlackJack\BlackJack\bin\Debug\BlackJack.pdb
+C:\Users\Jayden\Documents\WebDev Projects\BlackJack\BlackJack\obj\Debug\BlackJack.csprojAssemblyReference.cache
+C:\Users\Jayden\Documents\WebDev Projects\BlackJack\BlackJack\obj\Debug\BlackJack.csproj.CoreCompileInputs.cache
+C:\Users\Jayden\Documents\WebDev Projects\BlackJack\BlackJack\obj\Debug\BlackJack.exe
+C:\Users\Jayden\Documents\WebDev Projects\BlackJack\BlackJack\obj\Debug\BlackJack.pdb

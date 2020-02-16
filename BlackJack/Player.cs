@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace BlackJack
 {
@@ -12,9 +13,15 @@ namespace BlackJack
 
         private bool softAce = false;
 
+        protected int WaitTime { get; set; }
         public List<Card> Hand { get; private set; } = new List<Card>();
         public int HandValue { get; private set; } = 0;
         public bool Blackjack { get; protected set; } = false;
+
+        public Player(int _waitTime = 1000)
+        {
+            WaitTime = _waitTime;
+        }
 
         public static void DetermineResult(Player player, Dealer dealer)
         {
@@ -86,7 +93,7 @@ namespace BlackJack
         public void AddToHand(Card card, bool faceUp = true)
         {
             if (card != null)
-            {
+            {              
                 Hand.Add(card);
 
                 Console.Write("Dealt " + GetType().Name + " card");
@@ -95,8 +102,14 @@ namespace BlackJack
                 {
                     Console.WriteLine(": " + card.ToString());
                 }
+                else
+                {
+                    Console.WriteLine();
+                }
+               
+                Thread.Sleep(WaitTime);
 
-                AddCardValue(card.Rank);               
+                AddCardValue(card.Rank);          
             }
         }
 
@@ -115,23 +128,33 @@ namespace BlackJack
         public bool CanHit(bool hitAvailable)
         {
             if (HandValue > 21)
-            {
-                Console.WriteLine();
-                ShowHand();
+            {                        
                 Console.WriteLine("BUST");
-                Console.WriteLine("Player loses.");
+                Console.WriteLine("Player loses.\n");
+                Console.WriteLine("Press 'Enter' to continue\n");
+                ConsoleKeyInfo keyInfo;
+
+                do
+                {
+                    keyInfo = Console.ReadKey(true);
+                }
+                while (keyInfo.Key != ConsoleKey.Enter);
+
                 hitAvailable = false;             
+            }
+            else if (HandValue == 21)
+            {
+                hitAvailable = false;
             }
 
             return hitAvailable;
         }
 
-        protected void ProposeHit(CardShuffler cs)
+        public virtual void Turn(CardShuffler cs)
         {
             Console.WriteLine("Would you like another card?");
             Console.WriteLine("Press 'H' to hit");
-            Console.WriteLine("Press 'S' to stand");
-            Console.WriteLine("Press 'V' to view your hand\n");
+            Console.WriteLine("Press 'S' to stand\n");           
 
             ConsoleKeyInfo keyInfo;
             bool hitAvailable = true;
@@ -143,39 +166,37 @@ namespace BlackJack
                 if (keyInfo.Key == ConsoleKey.H)
                 {
                     AddToHand(cs.Deal());
+                    Console.WriteLine();
+                    ShowHand();
+
+                    Thread.Sleep(WaitTime);
 
                     hitAvailable = CanHit(hitAvailable);
 
                     if (hitAvailable)
                     {
-                        Console.WriteLine("\nWould you like another card?");
+                        Console.WriteLine("Would you like another card?");
                         Console.WriteLine("Press 'H' to hit");
-                        Console.WriteLine("Press 'S' to stand");
-                        Console.WriteLine("Press 'V' to view your hand\n");
+                        Console.WriteLine("Press 'S' to stand\n");
                     }
-                }
-
-                if (keyInfo.Key == ConsoleKey.V)
-                {
-                    ShowHand();
-                }
+                }               
 
                 if (keyInfo.Key == ConsoleKey.S)
                 {
-                    Console.WriteLine("Player stands\n");
+                    Console.WriteLine("Player stands.\n");
                 }
             }
             while (keyInfo.Key != ConsoleKey.S && hitAvailable);
         }
 
         public void CheckBlackjack()
-        {
+        {         
             if (HandValue == 21)
             {
+                ShowHand();
                 Console.WriteLine("BLACKJACK!\n");
                 Blackjack = true;
-
-                Console.WriteLine("Press 'Enter' to continue");
+                Console.WriteLine("Press 'Enter' to continue\n");
 
                 ConsoleKeyInfo keyInfo;
 
@@ -187,23 +208,12 @@ namespace BlackJack
             }
         }
 
-        public void Turn(CardShuffler cs)
-        {
-            if (HandValue < 21)
-            {
-                ProposeHit(cs);
-            }
-            else
-            {
-                CheckBlackjack();
-            }
-        }
-
         public void RetrieveHand()
         {
             Hand.Clear();
             HandValue = 0;
             Blackjack = false;
+            softAce = false;
         }
 
         public void ShowRecord()
@@ -218,22 +228,36 @@ namespace BlackJack
 
     public class Dealer : Player
     {
-        public new void Turn(CardShuffler cs)
-        {       
+        public Dealer(int _waitTime = 1000)
+        {
+            WaitTime = _waitTime;
+        }
+
+        public override void Turn(CardShuffler cs)
+        {
+            bool showHitText = true;
             ConsoleKeyInfo keyInfo;         
         
             if (HandValue < 17)
-            {
+            {               
                 do
                 {
-                    Console.WriteLine("Dealer hits");
+                    if (showHitText)
+                    {
+                        Console.WriteLine("Dealer hits.\n");
+                        Thread.Sleep(WaitTime);
+                    }                                     
+
                     AddToHand(cs.Deal());
                     Console.WriteLine();
                     ShowHand();
 
+                    Thread.Sleep(WaitTime);
+
                     if (HandValue < 17)
                     {
                         Console.WriteLine("Press 'Enter' for dealer's next card\n");
+                        showHitText = false;
                     }
                     else if (HandValue > 21)
                     {

@@ -140,14 +140,13 @@ namespace BlackJack
         }
 
         public Card Deal()
-        {
+        {       
             Card topCard = null;
 
             if (Stock.Any())
             {
                 topCard = Stock.Last();
-
-                Stock.RemoveAt(Stock.Count - 1);               
+                Stock.RemoveAt(Stock.Count - 1);
             }
 
             return topCard;

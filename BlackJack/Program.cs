@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace BlackJack
 {
@@ -7,8 +8,10 @@ namespace BlackJack
         private static bool playing = false;
         private static bool settings = false;
 
-        static void NewRound(CardShuffler cs, Player player, Dealer dealer)
-        {
+        static void NewRound(CardShuffler cs, Player player, Dealer dealer, int numRound)
+        {                 
+            Console.WriteLine("Round " + numRound + "\n");
+
             if (cs.RestockRequired())
             {               
                 cs.Restock();
@@ -20,23 +23,39 @@ namespace BlackJack
             dealer.AddToHand(cs.Deal(), false);
 
             Console.WriteLine();
-
             dealer.CheckBlackjack();
+            player.CheckBlackjack();
+
+            ConsoleKeyInfo keyInfo;
 
             if (!dealer.Blackjack)
             {
-                Console.WriteLine();
+                if (player.Blackjack)
+                {
+                    dealer.ShowHand();
 
-                player.ShowHand();
+                    Console.WriteLine("Press 'Enter' to continue\n");
 
-                player.Turn(cs);
-
-                ConsoleKeyInfo keyInfo;
+                    do
+                    {
+                        keyInfo = Console.ReadKey(true);
+                    }
+                    while (keyInfo.Key != ConsoleKey.Enter);
+                }
+                else
+                {
+                    player.ShowHand();
+                    player.Turn(cs);
+                }
 
                 if (player.HandValue <= 21 && !player.Blackjack)
                 {
-                    player.ShowHand();
-                    Console.WriteLine("Player has been dealt\n");
+                    Thread.Sleep(Settings.WaitTime);
+
+                    Console.WriteLine("Player has been dealt.\n");
+
+                    Thread.Sleep(Settings.WaitTime);
+
                     Console.WriteLine("Dealer's turn");
                     Console.WriteLine("Press 'Enter' to continue\n");
 
@@ -48,44 +67,64 @@ namespace BlackJack
 
                     dealer.ShowHand();
 
+                    Thread.Sleep(Settings.WaitTime);
+
                     dealer.Turn(cs);
 
-                    if (!dealer.Blackjack)
+                    if (!dealer.Blackjack && dealer.HandValue <= 21)
                     {
                         Console.WriteLine("Player: " + player.HandValue);
                         Console.WriteLine("Dealer: " + dealer.HandValue);
+                        Console.WriteLine();
                     }
-                }
-
-                Console.WriteLine();
+                }            
             }
             else
-            {
-                player.CheckBlackjack();
+            {             
+                if (!player.Blackjack)
+                {
+                    player.ShowHand();
+                    Console.WriteLine("Press 'Enter' to continue\n");
+
+                    do
+                    {
+                        keyInfo = Console.ReadKey(true);                      
+                    }
+                    while (keyInfo.Key != ConsoleKey.Enter);
+                }
             }
 
             Player.DetermineResult(player, dealer);
+
+            Thread.Sleep(Settings.WaitTime);
+
             player.ShowRecord();
-            dealer.ShowRecord();
+
+            if (Settings.ShowDealerRecord)
+            {
+                dealer.ShowRecord();
+            }
         }
 
         static void StartGame()
         {
-            int numRounds = 1;
             playing = true;
+            int numRound = 1;         
 
-            Player player = new Player();
-            Dealer dealer = new Dealer();
+            Player player = new Player(Settings.WaitTime);
+            Dealer dealer = new Dealer(Settings.WaitTime);
             CardShuffler cs = new CardShuffler(Settings.NumDecks);
+
+            Console.Clear();
 
             do
             {
-                if (numRounds > 1)
+                if (numRound > 1)
                 {                  
                     cs.RetrieveCards(player, dealer);
                 }             
 
-                NewRound(cs, player, dealer);            
+                NewRound(cs, player, dealer, numRound);            
 
                 Console.WriteLine("Would you like to play another round?");
                 Console.WriteLine("Press 'Y' to start a new round");
@@ -99,7 +138,17 @@ namespace BlackJack
 
                     if (keyInfo.Key == ConsoleKey.Y)
                     {
-                        numRounds++;
+                        numRound++;
+
+                        if (Settings.KeepRoundHistory)
+                        {                                                                               
+                            Console.WriteLine("========================================");
+                            Console.WriteLine();
+                        }
+                        else
+                        {
+                            Console.Clear();
+                        }
                     }
 
                     if (keyInfo.Key == ConsoleKey.Escape)
@@ -112,6 +161,7 @@ namespace BlackJack
             }
             while (playing == true);
 
+            Console.Clear();
             Console.WriteLine("Game ended\n");
         }
 
@@ -139,6 +189,8 @@ namespace BlackJack
                 }
             }
             while (keyInfo.Key != ConsoleKey.P && keyInfo.Key != ConsoleKey.S && keyInfo.Key != ConsoleKey.Escape);
+
+            Console.Clear();
         }
 
         static void ShowSettingsMenu()
@@ -146,20 +198,31 @@ namespace BlackJack
             bool showSettingsInfo = true;
             ConsoleKeyInfo keyInfo;
 
+            Console.WriteLine("Settings\n");
+
             do
             {
                 if (showSettingsInfo)
-                {
-                    Console.WriteLine("Settings");
-                    Console.WriteLine("Press 'N' to change the number of decks used");
+                {                  
+                    Settings.Show();
+
                     Console.WriteLine("Press 'T' to change the game theme");
+                    Console.WriteLine("Press 'N' to change the number of decks used");
+                    Console.WriteLine("Press 'W' to change the wait time between events");
+                    Console.WriteLine("Press 'H' to toggle the round history");
+                    Console.WriteLine("Press 'R' to toggle the dealer record");
                     Console.WriteLine("Press 'D' to reset defaults");
                     Console.WriteLine("Press 'Esc' to return to the main menu\n");
-
                     showSettingsInfo = false;
                 }
 
                 keyInfo = Console.ReadKey(true);
+
+                if (keyInfo.Key == ConsoleKey.T)
+                {
+                    Settings.ThemeSetting();
+                    showSettingsInfo = true;
+                }
 
                 if (keyInfo.Key == ConsoleKey.N)
                 {
@@ -167,9 +230,21 @@ namespace BlackJack
                     showSettingsInfo = true;
                 }
 
-                if (keyInfo.Key == ConsoleKey.T)
+                if (keyInfo.Key == ConsoleKey.W)
                 {
-                    Settings.ThemeSetting();
+                    Settings.WaitTimeSetting();
+                    showSettingsInfo = true;
+                }
+
+                if (keyInfo.Key == ConsoleKey.H)
+                {
+                    Settings.RoundHistorySetting();
+                    showSettingsInfo = true;
+                }
+
+                if (keyInfo.Key == ConsoleKey.R)
+                {
+                    Settings.DealerRecordSetting();
                     showSettingsInfo = true;
                 }
 
@@ -179,6 +254,7 @@ namespace BlackJack
                     showSettingsInfo = true;
                 }
 
+                Console.Clear();
             }
             while (keyInfo.Key != ConsoleKey.Escape);
 
@@ -204,6 +280,8 @@ namespace BlackJack
                 }
             }
             while (keyInfo.Key != ConsoleKey.Y && keyInfo.Key != ConsoleKey.N);
+
+            Console.Clear();
 
             return exitChoice;
         }

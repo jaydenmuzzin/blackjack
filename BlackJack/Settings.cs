@@ -23,6 +23,20 @@ namespace BlackJack
         public static bool KeepRoundHistory { get; set; } = defKeepRoundHistory;
         public static bool ShowDealerRecord { get; set; } = defShowDealerRecord;
 
+        public static int NumPicker(char keyChar, int number)
+        {
+            if (int.TryParse(keyChar.ToString(), out int i))
+            {
+                if (i > 0)
+                {
+                    number = i;
+                    Console.WriteLine(number);
+                }
+            }
+
+            return number;
+        }
+
         public static void Show()
         {
             Console.WriteLine("Game theme is: " + Theme);
@@ -123,21 +137,7 @@ namespace BlackJack
             while (keyInfo.Key != ConsoleKey.Enter);
 
             Theme = theme;
-        }
-
-        private static int NumDecks_KeyPress(char keyChar, int numDecks)
-        {
-            if (int.TryParse(keyChar.ToString(), out int i))
-            {
-                if (i > 0)
-                {
-                    numDecks = i;
-                    Console.WriteLine(numDecks);
-                }
-            }
-
-            return numDecks;
-        }
+        }      
 
         public static void NumDecksSetting()
         {
@@ -154,7 +154,7 @@ namespace BlackJack
 
                 if (keyInfo.Key != ConsoleKey.Enter)
                 {
-                    numDecks = NumDecks_KeyPress(keyInfo.KeyChar, numDecks);
+                    numDecks = NumPicker(keyInfo.KeyChar, numDecks);
                 }
             }
             while (keyInfo.Key != ConsoleKey.Enter);

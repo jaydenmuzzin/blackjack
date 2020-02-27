@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace BlackJack
@@ -8,54 +9,68 @@ namespace BlackJack
         private static bool playing = false;
         private static bool settings = false;
 
-        static void NewRound(CardShuffler cs, Player player, Dealer dealer, int numRound)
+        static void NewRound(CardShuffler cs, List<Player> players, Dealer dealer, int numRound)
         {                 
             Console.WriteLine("Round " + numRound + "\n");
 
             if (cs.RestockRequired())
             {               
                 cs.Restock();
-            }       
+            }
 
-            player.AddToHand(cs.Deal());
+            // First round of dealing
+            foreach (Player player in players)
+            {
+                player.AddToHand(cs.Deal());
+            }
+
             dealer.AddToHand(cs.Deal());
-            player.AddToHand(cs.Deal());
+
+            // Second round of dealing
+            foreach (Player player in players)
+            {
+                player.AddToHand(cs.Deal());
+            }
+
             dealer.AddToHand(cs.Deal(), false);
 
             Console.WriteLine();
-            dealer.CheckBlackjack();
-            player.CheckBlackjack();
 
-            ConsoleKeyInfo keyInfo;
+            // Check if anyone has blackjack
+            dealer.CheckBlackjack();
+
+            foreach (Player player in players)
+            {
+                player.CheckBlackjack();
+            }
+
+            ConsoleKeyInfo keyInfo;          
+            int bustCount = 0;
 
             if (!dealer.Blackjack)
             {
-                if (player.Blackjack)
+                foreach (Player player in players)
                 {
-                    dealer.ShowHand();
-
-                    Console.WriteLine("Press 'Enter' to continue\n");
-
-                    do
+                    if (!player.Blackjack)
                     {
-                        keyInfo = Console.ReadKey(true);
-                    }
-                    while (keyInfo.Key != ConsoleKey.Enter);
+                        Console.WriteLine(player.Name + "'s turn.\n");
+                        Thread.Sleep(Settings.WaitTime);
+                        player.ShowHand();
+                        player.Turn(cs);
+                        
+                        if (player.HandValue > 21)
+                        {
+                            bustCount++;
+                        }
+
+                        Thread.Sleep(Settings.WaitTime);
+                        Console.WriteLine(player.Name + " has been dealt.\n");
+                        Thread.Sleep(Settings.WaitTime);                     
+                    }                        
                 }
-                else
+
+                if (bustCount != players.Count)
                 {
-                    player.ShowHand();
-                    player.Turn(cs);
-                }
-
-                if (player.HandValue <= 21 && !player.Blackjack)
-                {
-                    Thread.Sleep(Settings.WaitTime);
-
-                    Console.WriteLine("Player has been dealt.\n");
-
-                    Thread.Sleep(Settings.WaitTime);
-
                     Console.WriteLine("Dealer's turn");
                     Console.WriteLine("Press 'Enter' to continue\n");
 
@@ -66,71 +81,147 @@ namespace BlackJack
                     while (keyInfo.Key != ConsoleKey.Enter);
 
                     dealer.ShowHand();
-
                     Thread.Sleep(Settings.WaitTime);
-
                     dealer.Turn(cs);
-
-                    if (!dealer.Blackjack && dealer.HandValue <= 21)
-                    {
-                        Console.WriteLine("Player: " + player.HandValue);
-                        Console.WriteLine("Dealer: " + dealer.HandValue);
-                        Console.WriteLine();
-                    }
-                }            
+                }
+                else
+                {
+                    Console.WriteLine("All players BUST!\n");
+                    Console.WriteLine("Press 'Enter' to continue\n");
+                }
+                
             }
             else
-            {             
-                if (!player.Blackjack)
+            {
+                foreach (Player player in players)
                 {
-                    player.ShowHand();
-                    Console.WriteLine("Press 'Enter' to continue\n");
-
-                    do
+                    if (!player.Blackjack)
                     {
-                        keyInfo = Console.ReadKey(true);                      
+                        player.ShowHand();
+                        Console.WriteLine("Press 'Enter' to continue\n");
+
+                        do
+                        {
+                            keyInfo = Console.ReadKey(true);                      
+                        }
+                        while (keyInfo.Key != ConsoleKey.Enter);
                     }
-                    while (keyInfo.Key != ConsoleKey.Enter);
                 }
             }
 
-            Player.DetermineResult(player, dealer);
+            if (!dealer.Blackjack && dealer.HandValue <= 21)
+            {
+                foreach (Player player in players)
+                {
+                    Console.WriteLine(player.Name + ": " + player.HandValue);
+                }
 
-            Thread.Sleep(Settings.WaitTime);
+                Console.WriteLine();
 
-            player.ShowRecord();
+                if (bustCount != players.Count)
+                {
+                    Console.WriteLine("Dealer: " + dealer.HandValue);
+                    Console.WriteLine();
+                }
+            }
+
+            foreach (Player player in players)
+            {
+                Player.DetermineResult(player, dealer);
+                Thread.Sleep(Settings.WaitTime);
+                player.ShowRecord();
+                Thread.Sleep(Settings.WaitTime);
+            }          
 
             if (Settings.ShowDealerRecord)
             {
                 dealer.ShowRecord();
             }
+
+            cs.RetrieveCards(new List<Player>(players) { dealer });
         }
 
         static void StartGame()
         {
             playing = true;
-            int numRound = 1;         
+            int numRound = 1;
 
-            Player player = new Player(Settings.WaitTime);
-            Dealer dealer = new Dealer(Settings.WaitTime);
+            List<Player> players = new List<Player>();
+            int numPlayers = 1;
+
+            ConsoleKeyInfo keyInfo;
+
+            Console.WriteLine("Enter the number of players, 1 to 9, then press 'Enter' to start");
+
+            do
+            {
+                keyInfo = Console.ReadKey(true);
+
+                if (keyInfo.Key != ConsoleKey.Enter)
+                {
+                    numPlayers = Settings.NumPicker(keyInfo.KeyChar, numPlayers);
+                }
+            }
+            while (keyInfo.Key != ConsoleKey.Enter);
+
+            Console.WriteLine("\nNumber of players in game: " + numPlayers);
+
+            for (int i = 1; i <= numPlayers; i++)
+            {
+                string playerName = "Player " + i;        
+
+                if (numPlayers > 1)
+                {
+                    Console.WriteLine("\nWould Player " + i + " like a name? Press 'Y' for yes or 'N' for no");
+                }
+                else
+                {
+                    Console.WriteLine("\nWould you like a name? Press 'Y' for yes or 'N' for no");
+                }
+
+                do
+                {               
+                    keyInfo = Console.ReadKey(true);   
+                    
+                    if (keyInfo.Key != ConsoleKey.Y && keyInfo.Key != ConsoleKey.N)
+                    {
+                        Console.WriteLine("\nPlease enter 'Y' to name player or 'N' to continue without naming player");
+                    }
+                }
+                while (keyInfo.Key != ConsoleKey.Y && keyInfo.Key != ConsoleKey.N);
+
+                if (keyInfo.Key == ConsoleKey.Y)
+                {
+                    if (numPlayers > 1)
+                    {
+                        Console.WriteLine("\nType Player " + i + "'s name, then press 'Enter' to continue");
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nType your name, then press 'Enter' to continue");
+                    }
+
+                    playerName = Console.ReadLine();              
+                }
+
+                players.Add(new Player(playerName, Settings.WaitTime));
+            }          
+
+            Dealer dealer = new Dealer(Settings.WaitTime);            
             CardShuffler cs = new CardShuffler(Settings.NumDecks);
 
             Console.Clear();
 
+            Player.ShowPlayers(players);
+            Thread.Sleep(Settings.WaitTime);
+
             do
             {
-                if (numRound > 1)
-                {                  
-                    cs.RetrieveCards(player, dealer);
-                }             
-
-                NewRound(cs, player, dealer, numRound);            
+                NewRound(cs, players, dealer, numRound);            
 
                 Console.WriteLine("Would you like to play another round?");
                 Console.WriteLine("Press 'Y' to start a new round");
                 Console.WriteLine("Press 'Esc' to exit the game\n");
-
-                ConsoleKeyInfo keyInfo;
 
                 do
                 {

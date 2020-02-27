@@ -152,17 +152,18 @@ namespace BlackJack
             return topCard;
         }
 
-        public void RetrieveCards(Player player, Player dealer)
+        public void RetrieveCards(List<Player> players)
         {
             if (DiscardPile == null)
             {
                 DiscardPile = new List<Card>();
-            }        
+            }
 
-            DiscardPile.AddRange(player.Hand);
-            player.RetrieveHand();
-            DiscardPile.AddRange(dealer.Hand);
-            dealer.RetrieveHand();
+            foreach (Player player in players)
+            {
+                DiscardPile.AddRange(player.Hand);
+                player.RetrieveHand();
+            }          
         }
 
         public bool RestockRequired()

@@ -16,11 +16,30 @@ namespace BlackJack
         protected int WaitTime { get; set; }
         public List<Card> Hand { get; private set; } = new List<Card>();
         public int HandValue { get; private set; } = 0;
+        public string Name { get; protected set; }
         public bool Blackjack { get; protected set; } = false;
 
         public Player(int _waitTime = 1000)
         {
             WaitTime = _waitTime;
+        }
+
+        public Player(string _name, int _waitTime = 1000)
+        {
+            Name = _name;
+            WaitTime = _waitTime;
+        }
+
+        public static void ShowPlayers(List<Player> players)
+        {
+            Console.WriteLine("PLAYERS:");
+
+            foreach (Player player in players)
+            {
+                Console.WriteLine(player.Name);
+            }
+
+            Console.WriteLine();
         }
 
         public static void DetermineResult(Player player, Dealer dealer)
@@ -29,7 +48,7 @@ namespace BlackJack
             {
                 if (player.HandValue > dealer.HandValue || dealer.HandValue > 21)
                 {
-                    Console.WriteLine("Player WINS!\n");
+                    Console.WriteLine(player.Name + " WINS!\n");
                     player.wins++;
                     dealer.losses++;
 
@@ -40,7 +59,7 @@ namespace BlackJack
                 }
                 else if (player.HandValue < dealer.HandValue && dealer.HandValue <= 21)
                 {
-                    Console.WriteLine("Player LOSES!\n");
+                    Console.WriteLine(player.Name + " LOSES!\n");
                     player.losses++;
                     dealer.wins++;
                 }
@@ -53,6 +72,8 @@ namespace BlackJack
             }
             else
             {
+                Console.WriteLine(player.Name + " LOSES!\n");
+
                 player.busts++;
                 player.losses++;
                 dealer.wins++;
@@ -96,7 +117,7 @@ namespace BlackJack
             {              
                 Hand.Add(card);
 
-                Console.Write("Dealt " + GetType().Name + " card");
+                Console.Write("Dealt " + Name + " card");
 
                 if (faceUp)
                 {
@@ -115,7 +136,7 @@ namespace BlackJack
 
         public void ShowHand()
         {
-            Console.WriteLine(GetType().Name + "'s hand is: ");
+            Console.WriteLine(Name + "'s hand is: ");
 
             foreach (Card card in Hand)
             {
@@ -129,9 +150,9 @@ namespace BlackJack
         {
             if (HandValue > 21)
             {                        
-                Console.WriteLine("BUST");
-                Console.WriteLine("Player loses.\n");
+                Console.WriteLine("BUST\n");
                 Console.WriteLine("Press 'Enter' to continue\n");
+
                 ConsoleKeyInfo keyInfo;
 
                 do
@@ -183,7 +204,7 @@ namespace BlackJack
 
                 if (keyInfo.Key == ConsoleKey.S)
                 {
-                    Console.WriteLine("Player stands.\n");
+                    Console.WriteLine(Name + " stands.\n");
                 }
             }
             while (keyInfo.Key != ConsoleKey.S && hitAvailable);
@@ -194,7 +215,7 @@ namespace BlackJack
             if (HandValue == 21)
             {
                 ShowHand();
-                Console.WriteLine("BLACKJACK!\n");
+                Console.WriteLine(Name + " has BLACKJACK!\n");
                 Blackjack = true;
                 Console.WriteLine("Press 'Enter' to continue\n");
 
@@ -218,7 +239,7 @@ namespace BlackJack
 
         public void ShowRecord()
         {
-            Console.WriteLine(GetType().Name + " Record:");
+            Console.WriteLine(Name + "'s Record:");
             Console.WriteLine("W: " + wins);
             Console.WriteLine("D: " + draws);
             Console.WriteLine("B: " + busts);
@@ -230,6 +251,7 @@ namespace BlackJack
     {
         public Dealer(int _waitTime = 1000)
         {
+            Name = "Dealer";
             WaitTime = _waitTime;
         }
 
